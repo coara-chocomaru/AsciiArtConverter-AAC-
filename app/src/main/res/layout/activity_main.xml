@@ -4,6 +4,7 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    
     <TextView
         android:id="@+id/filePathView"
         android:layout_width="match_parent"
@@ -14,17 +15,37 @@
         android:singleLine="true"
         android:layout_marginBottom="16dp" />
 
+
     <Button
         android:id="@+id/selectFileButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="テキストファイルを選択" />
 
+
+    <Button
+        android:id="@+id/selectColorFileButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="カラーDATファイルを選択"
+        android:layout_marginTop="8dp" />
+
+
     <Button
         android:id="@+id/convertButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="画像に変換"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="16dp"
+        android:enabled="false" />
+
+
+    <Button
+        android:id="@+id/convertWithColorButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="カラー画像に変換"
+        android:layout_marginTop="16dp"
+        android:enabled="false" />
 
 </LinearLayout>
