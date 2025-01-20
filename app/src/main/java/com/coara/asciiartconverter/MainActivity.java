@@ -114,18 +114,13 @@ public class MainActivity extends Activity {
     }
 
     private void updateConvertButtonState() {
-        // txtだけ選択された場合、画像に変換ボタンを有効化
         if (selectedFilePath != null && selectedColorFilePath == null) {
             convertButton.setEnabled(true);
             convertWithColorButton.setEnabled(false);
-        } 
-        // txtとカラーDATファイルが選択された場合、カラー画像に変換ボタンを有効化
-        else if (selectedFilePath != null && selectedColorFilePath != null) {
+        } else if (selectedFilePath != null && selectedColorFilePath != null) {
             convertButton.setEnabled(false);
             convertWithColorButton.setEnabled(true);
-        } 
-        // どちらも選択されていない場合、両方のボタンを無効化
-        else {
+        } else {
             convertButton.setEnabled(false);
             convertWithColorButton.setEnabled(false);
         }
@@ -196,7 +191,6 @@ public class MainActivity extends Activity {
             saveBitmapAsPng(bitmap);
 
             Toast.makeText(this, "カラー変換と保存が完了しました", Toast.LENGTH_SHORT).show();
-
         } catch (Exception e) {
             Toast.makeText(this, "変換中にエラーが発生しました", Toast.LENGTH_SHORT).show();
         }
