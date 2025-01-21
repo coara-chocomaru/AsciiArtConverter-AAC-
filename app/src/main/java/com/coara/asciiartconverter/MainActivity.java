@@ -200,8 +200,8 @@ public class MainActivity extends Activity {
         try {
             BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
             String line;
-            int originalWidth = width;  // ASCII art width
-            int originalHeight = height; // ASCII art height
+            int originalWidth = width;
+            int originalHeight = height;
 
             while ((line = colorReader.readLine()) != null) {
                 String[] parts = line.split(":");
@@ -213,6 +213,7 @@ public class MainActivity extends Activity {
                 int green = Integer.parseInt(rgb[1]);
                 int blue = Integer.parseInt(rgb[2]);
 
+                // 座標をスケーリング
                 int newX = (int) (originalX * (float) width / originalWidth);
                 int newY = (int) (originalY * (float) height / originalHeight);
 
