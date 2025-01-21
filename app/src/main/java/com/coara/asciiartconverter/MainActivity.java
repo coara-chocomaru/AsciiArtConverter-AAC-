@@ -190,7 +190,7 @@ public class MainActivity extends Activity {
         return bitmap;
     }
 
-    /
+    
     private Bitmap createBitmapFromDat(List<int[]> pixelData, int width, int height) {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
