@@ -200,8 +200,14 @@ public class MainActivity extends Activity {
         try {
             BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
             String line;
-            int originalWidth = width;
-            int originalHeight = height;
+
+            // 動的に画像の幅と高さを取得
+            int newWidth = bitmap.getWidth();
+            int newHeight = bitmap.getHeight();
+
+            // 元のDATファイルの幅と高さ（ここでは200x200を仮定）
+            int originalWidth = 200;
+            int originalHeight = 200;
 
             while ((line = colorReader.readLine()) != null) {
                 String[] parts = line.split(":");
@@ -213,10 +219,11 @@ public class MainActivity extends Activity {
                 int green = Integer.parseInt(rgb[1]);
                 int blue = Integer.parseInt(rgb[2]);
 
-                // 座標をスケーリング
-                int newX = (int) (originalX * (float) width / originalWidth);
-                int newY = (int) (originalY * (float) height / originalHeight);
+                // 座標を新しい画像のサイズにスケーリング
+                int newX = (int) (originalX * (float) newWidth / originalWidth);
+                int newY = (int) (originalY * (float) newHeight / originalHeight);
 
+                // スケーリング後の座標で画像内にピクセルを設定
                 if (newX < bitmap.getWidth() && newY < bitmap.getHeight()) {
                     bitmap.setPixel(newX, newY, Color.rgb(red, green, blue));
                 }
