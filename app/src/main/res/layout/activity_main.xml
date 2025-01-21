@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- ヘッダー -->
+
     <TextView
         android:id="@+id/filePathView"
         android:layout_width="match_parent"
@@ -16,7 +16,7 @@
         android:textColor="#000000"
         android:gravity="center"/>
 
-    <!-- TXTファイル選択ボタン -->
+    
     <Button
         android:id="@+id/selectTxtFileButton"
         android:layout_width="match_parent"
@@ -26,8 +26,7 @@
         android:layout_marginTop="16dp"
         android:padding="10dp"
         android:background="?android:attr/selectableItemBackground"/>
-
-    <!-- RGBファイル選択ボタン -->
+    
     <Button
         android:id="@+id/selectColorFileButton"
         android:layout_width="match_parent"
@@ -38,7 +37,7 @@
         android:padding="10dp"
         android:background="?android:attr/selectableItemBackground"/>
 
-    <!-- TXTから画像に変換するボタン -->
+    
     <Button
         android:id="@+id/convertTxtButton"
         android:layout_width="match_parent"
@@ -47,9 +46,10 @@
         android:textSize="16sp"
         android:layout_marginTop="16dp"
         android:padding="10dp"
-        android:background="?android:attr/selectableItemBackground"/>
+        android:background="?android:attr/selectableItemBackground"
+        android:enabled="false"/> 
 
-    <!-- RGBから画像に復元するボタン -->
+    
     <Button
         android:id="@+id/convertRgbButton"
         android:layout_width="match_parent"
@@ -58,6 +58,7 @@
         android:textSize="16sp"
         android:layout_marginTop="16dp"
         android:padding="10dp"
-        android:background="?android:attr/selectableItemBackground"/>
+        android:background="?android:attr/selectableItemBackground"
+        android:enabled="false"/> 
 
 </LinearLayout>
