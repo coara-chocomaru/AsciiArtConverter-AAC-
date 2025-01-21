@@ -128,40 +128,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void convertAsciiToImage(String filePath) {
-        try {
-            Uri uri = Uri.parse(filePath);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(uri)));
-            StringBuilder asciiArt = new StringBuilder();
-            String line;
-            int maxWidth = 0;
-            int lineCount = 0;
-
-            Paint paint = new Paint();
-            paint.setTextSize(40);
-            paint.setTypeface(Typeface.MONOSPACE);
-
-            while ((line = reader.readLine()) != null) {
-                asciiArt.append(line).append("\n");
-                maxWidth = Math.max(maxWidth, (int) paint.measureText(line));
-                lineCount++;
-            }
-            reader.close();
-
-            int charHeight = (int) (paint.getTextSize() + 10);
-            int width = maxWidth + 20;
-            int height = lineCount * charHeight + 20;
-
-            Bitmap bitmap = createBitmapFromAscii(asciiArt.toString(), width, height, paint, charHeight);
-
-            saveBitmapAsPng(bitmap);
-
-            Toast.makeText(this, "変換と保存が完了しました", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "変換中にエラーが発生しました", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     private void convertAsciiToImageWithColor(String txtFilePath, String colorFilePath) {
         try {
             // TXTファイルの読み込み
@@ -194,13 +160,11 @@ public class MainActivity extends Activity {
             // カラーDATファイルの処理
             BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
             String colorLine;
+            List<ColorCoordinate> colorCoordinates = new ArrayList<>();
             int originalWidth = 0;
             int originalHeight = 0;
 
             // カラーDATファイルの座標を保存するリスト
-            List<ColorCoordinate> colorCoordinates = new ArrayList<>();
-
-            // カラーDATファイルのサイズを動的に取得
             while ((colorLine = colorReader.readLine()) != null) {
                 String[] parts = colorLine.split(":");
                 String[] coords = parts[0].split(",");
@@ -278,19 +242,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    private String getFileNameFromUri(Uri uri) {
-        String fileName = "";
-        ContentResolver contentResolver = getContentResolver();
-        try (Cursor cursor = contentResolver.query(uri, null, null, null, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                fileName = cursor.getString(nameIndex);
-            }
-        }
-        return fileName.substring(0, fileName.lastIndexOf('.'));
-    }
-
-    // カラー座標のデータクラス
     private static class ColorCoordinate {
         int x, y, red, green, blue;
 
