@@ -186,7 +186,7 @@ public class MainActivity extends Activity {
 
             Bitmap bitmap = createBitmapFromAscii(asciiArt.toString(), width, height, paint, charHeight);
 
-            applyColorFromDatFile(bitmap, colorFilePath);
+            applyColorFromDatFile(bitmap, colorFilePath, width, height);
 
             saveBitmapAsPng(bitmap);
 
@@ -196,24 +196,30 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void applyColorFromDatFile(Bitmap bitmap, String colorFilePath) {
+    private void applyColorFromDatFile(Bitmap bitmap, String colorFilePath, int width, int height) {
         try {
             BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
             String line;
+
             while ((line = colorReader.readLine()) != null) {
                 String[] parts = line.split(":");
                 String[] coords = parts[0].split(",");
-                int x = Integer.parseInt(coords[0]);
-                int y = Integer.parseInt(coords[1]);
+                int originalX = Integer.parseInt(coords[0]);
+                int originalY = Integer.parseInt(coords[1]);
                 String[] rgb = parts[1].split(",");
                 int red = Integer.parseInt(rgb[0]);
                 int green = Integer.parseInt(rgb[1]);
                 int blue = Integer.parseInt(rgb[2]);
 
-                if (x < bitmap.getWidth() && y < bitmap.getHeight()) {
-                    bitmap.setPixel(x, y, Color.rgb(red, green, blue));
+                // リサイズアルゴリズム：元の座標を新しい画像のサイズに合わせてスケーリング
+                int newX = (int) (originalX * (float) width / originalWidth);
+                int newY = (int) (originalY * (float) height / originalHeight);
+
+                if (newX < bitmap.getWidth() && newY < bitmap.getHeight()) {
+                    bitmap.setPixel(newX, newY, Color.rgb(red, green, blue));
                 }
             }
+
             colorReader.close();
         } catch (Exception e) {
             Toast.makeText(this, "カラーDATファイルの処理中にエラーが発生しました", Toast.LENGTH_SHORT).show();
