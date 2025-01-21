@@ -201,8 +201,8 @@ public class MainActivity extends Activity {
             BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
             String line;
 
-            int originalWidth = 200;  // 元の画像の幅
-            int originalHeight = 200;  // 元の画像の高さ
+            int originalWidth = 544;  // 元の画像の幅
+            int originalHeight = 544;  // 元の画像の高さ
 
             while ((line = colorReader.readLine()) != null) {
                 String[] parts = line.split(":");
