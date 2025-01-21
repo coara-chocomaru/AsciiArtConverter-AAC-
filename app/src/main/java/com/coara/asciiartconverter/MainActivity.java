@@ -213,6 +213,7 @@ public class MainActivity extends Activity {
                 int green = Integer.parseInt(rgb[1]);
                 int blue = Integer.parseInt(rgb[2]);
 
+                // リサイズしてカラーを適用
                 int newX = (int) (originalX * (float) width / originalWidth);
                 int newY = (int) (originalY * (float) height / originalHeight);
 
