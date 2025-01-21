@@ -25,7 +25,7 @@
         android:id="@+id/convertButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="T画像に変換"
+        android:text="画像に変換"
         android:enabled="false"
         android:paddingTop="16dp"/>
 
