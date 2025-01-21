@@ -200,6 +200,8 @@ public class MainActivity extends Activity {
         try {
             BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
             String line;
+            int originalWidth = width;  // ASCII art width
+            int originalHeight = height; // ASCII art height
 
             while ((line = colorReader.readLine()) != null) {
                 String[] parts = line.split(":");
@@ -211,7 +213,6 @@ public class MainActivity extends Activity {
                 int green = Integer.parseInt(rgb[1]);
                 int blue = Integer.parseInt(rgb[2]);
 
-                // リサイズアルゴリズム：元の座標を新しい画像のサイズに合わせてスケーリング
                 int newX = (int) (originalX * (float) width / originalWidth);
                 int newY = (int) (originalY * (float) height / originalHeight);
 
@@ -219,7 +220,6 @@ public class MainActivity extends Activity {
                     bitmap.setPixel(newX, newY, Color.rgb(red, green, blue));
                 }
             }
-
             colorReader.close();
         } catch (Exception e) {
             Toast.makeText(this, "カラーDATファイルの処理中にエラーが発生しました", Toast.LENGTH_SHORT).show();
