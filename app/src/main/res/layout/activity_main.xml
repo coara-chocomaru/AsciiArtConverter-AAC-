@@ -1,59 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- TXTファイル選択ボタン -->
+    <!-- ファイル選択ボタン -->
     <Button
         android:id="@+id/selectFileButton"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="TXTファイルを選択"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"/>
+        android:text="ファイルを選択" />
 
-    <!-- DATファイル選択ボタン -->
-    <Button
-        android:id="@+id/selectDatFileButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="DATファイルを選択"
-        android:layout_below="@id/selectFileButton"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"/>
-
-    <!-- TXTから画像に変換ボタン -->
-    <Button
-        android:id="@+id/convertTxtToImageButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TXTから画像に変換"
-        android:layout_below="@id/selectDatFileButton"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"/>
-
-    <!-- DATから画像に変換ボタン -->
-    <Button
-        android:id="@+id/convertDatToImageButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="DATから画像に変換"
-        android:layout_below="@id/convertTxtToImageButton"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"/>
-
-    <!-- ファイルパス表示用TextView -->
+    <!-- 選択されたファイルパス表示 -->
     <TextView
         android:id="@+id/filePathView"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="選択されたファイルのパス"
-        android:textSize="14sp"
-        android:layout_below="@id/convertDatToImageButton"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:maxLines="2"
-        android:ellipsize="end"/>
+        android:text="選択されたファイル: なし"
+        android:paddingTop="8dp"/>
 
-</RelativeLayout>
+    <!-- 変換ボタン (txtファイル用) -->
+    <Button
+        android:id="@+id/convertButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="画像に変換"
+        android:enabled="false"
+        android:paddingTop="16dp"/>
+
+    <!-- 復元ボタン (datファイル用) -->
+    <Button
+        android:id="@+id/revertButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="画像に復元"
+        android:enabled="false"
+        android:paddingTop="8dp"/>
+</LinearLayout>
