@@ -51,8 +51,8 @@ public class MainActivity extends Activity {
         convertWithColorButton = findViewById(R.id.convertWithColorButton);
         filePathView = findViewById(R.id.filePathView);
 
-        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_PERMISSION);
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_PERMISSION);
         }
 
         selectFileButton.setOnClickListener(v -> {
