@@ -201,13 +201,8 @@ public class MainActivity extends Activity {
             BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
             String line;
 
-            // 動的に画像の幅と高さを取得
-            int newWidth = bitmap.getWidth();
-            int newHeight = bitmap.getHeight();
-
-            // 元のDATファイルの幅と高さ（ここでは200x200を仮定）
-            int originalWidth = 200;
-            int originalHeight = 200;
+            int originalWidth = 200;  // 元の画像の幅
+            int originalHeight = 200;  // 元の画像の高さ
 
             while ((line = colorReader.readLine()) != null) {
                 String[] parts = line.split(":");
@@ -220,13 +215,14 @@ public class MainActivity extends Activity {
                 int blue = Integer.parseInt(rgb[2]);
 
                 // 座標を新しい画像のサイズにスケーリング
-                int newX = (int) (originalX * (float) newWidth / originalWidth);
-                int newY = (int) (originalY * (float) newHeight / originalHeight);
+                float scaleX = (float) width / originalWidth;
+                float scaleY = (float) height / originalHeight;
+                float newX = originalX * scaleX;
+                float newY = originalY * scaleY;
 
-                // スケーリング後の座標で画像内にピクセルを設定
-                if (newX < bitmap.getWidth() && newY < bitmap.getHeight()) {
-                    bitmap.setPixel(newX, newY, Color.rgb(red, green, blue));
-                }
+                // バイリニア補間を行い、ピクセルデータを補完する
+                int color = getBilinearInterpolatedColor(bitmap, newX, newY, red, green, blue);
+                bitmap.setPixel((int) newX, (int) newY, color);
             }
             colorReader.close();
         } catch (Exception e) {
@@ -235,13 +231,53 @@ public class MainActivity extends Activity {
         }
     }
 
+    private int getBilinearInterpolatedColor(Bitmap bitmap, float x, float y, int red, int green, int blue) {
+        int x1 = (int) x;
+        int y1 = (int) y;
+        int x2 = Math.min(x1 + 1, bitmap.getWidth() - 1);
+        int y2 = Math.min(y1 + 1, bitmap.getHeight() - 1);
+
+        
+        int c11 = bitmap.getPixel(x1, y1);
+        int c12 = bitmap.getPixel(x1, y2);
+        int c21 = bitmap.getPixel(x2, y1);
+        int c22 = bitmap.getPixel(x2, y2);
+
+        
+        int r1 = Color.red(c11);
+        int g1 = Color.green(c11);
+        int b1 = Color.blue(c11);
+
+        int r2 = Color.red(c21);
+        int g2 = Color.green(c21);
+        int b2 = Color.blue(c21);
+
+        int r3 = Color.red(c12);
+        int g3 = Color.green(c12);
+        int b3 = Color.blue(c12);
+
+        int r4 = Color.red(c22);
+        int g4 = Color.green(c22);
+        int b4 = Color.blue(c22);
+
+        
+        float dx = x - x1;
+        float dy = y - y1;
+
+        int r = (int) (r1 * (1 - dx) * (1 - dy) + r2 * dx * (1 - dy) + r3 * (1 - dx) * dy + r4 * dx * dy);
+        int g = (int) (g1 * (1 - dx) * (1 - dy) + g2 * dx * (1 - dy) + g3 * (1 - dx) * dy + g4 * dx * dy);
+        int b = (int) (b1 * (1 - dx) * (1 - dy) + b2 * dx * (1 - dy) + b3 * (1 - dx) * dy + b4 * dx * dy);
+
+        return Color.rgb(r, g, b);
+    }
+
     private Bitmap createBitmapFromAscii(String asciiArt, int width, int height, Paint paint, int charHeight) {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         canvas.drawColor(Color.WHITE);
 
-        String[] lines = asciiArt.split("\n");
         int y = charHeight;
+        String[] lines = asciiArt.split("\n");
         for (String line : lines) {
             canvas.drawText(line, 10, y, paint);
             y += charHeight;
@@ -252,33 +288,19 @@ public class MainActivity extends Activity {
 
     private void saveBitmapAsPng(Bitmap bitmap) {
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("MMddHHmmss");
-            String currentDateTime = sdf.format(new Date());
-            String fileName = currentDateTime + "_ascii_art.png";
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+            String timestamp = sdf.format(new Date());
+            File file = new File(getExternalFilesDir(null), "ascii_" + timestamp + ".png");
 
-            File outputDir = getExternalFilesDir(null);
-            if (outputDir != null) {
-                File outputFile = new File(outputDir, fileName);
-                FileOutputStream out = new FileOutputStream(outputFile);
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-                out.close();
+            FileOutputStream out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            out.close();
 
-                Toast.makeText(this, "画像が保存されました: " + outputFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
-            }
+            Toast.makeText(this, "画像を保存しました: " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            Toast.makeText(this, "画像の保存中にエラーが発生しました", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+            Toast.makeText(this, "画像の保存に失敗しました", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private String getFileNameFromUri(Uri uri) {
-        String fileName = "";
-        ContentResolver contentResolver = getContentResolver();
-        try (Cursor cursor = contentResolver.query(uri, null, null, null, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                fileName = cursor.getString(nameIndex);
-            }
-        }
-        return fileName.substring(0, fileName.lastIndexOf('.'));
     }
 }
