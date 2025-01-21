@@ -1,51 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp">
 
-    
+
     <TextView
         android:id="@+id/filePathView"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ファイルパスがここに表示されます"
         android:textSize="16sp"
-        android:ellipsize="end"
-        android:singleLine="true"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"/>
 
-
+    
     <Button
-        android:id="@+id/selectFileButton"
-        android:layout_width="match_parent"
+        android:id="@+id/selectTxtFileButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="テキストファイルを選択" />
+        android:text="TXTファイルを選択"
+        android:layout_marginBottom="16dp"/>
 
 
     <Button
         android:id="@+id/selectColorFileButton"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="カラーDATファイルを選択"
-        android:layout_marginTop="8dp" />
+        android:text="RGBカラーDATファイルを選択"
+        android:layout_marginBottom="16dp"/>
 
-
+    
     <Button
         android:id="@+id/convertButton"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="画像に変換"
-        android:layout_marginTop="16dp"
-        android:enabled="false" />
-
+        android:text="TXTを画像に変換"
+        android:layout_marginBottom="16dp"/>
 
     <Button
         android:id="@+id/convertWithColorButton"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="カラー画像に変換"
-        android:layout_marginTop="16dp"
-        android:enabled="false" />
+        android:text="RGBを画像に復元"
+        android:layout_marginBottom="16dp"/>
 
 </LinearLayout>
