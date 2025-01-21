@@ -16,7 +16,6 @@ import android.provider.OpenableColumns;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.database.Cursor;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -101,18 +100,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_CODE_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "ストレージ権限が許可されました", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "ストレージ権限が必要です", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
     private void updateConvertButtonState() {
         if (selectedFilePath != null && selectedColorFilePath == null) {
             convertButton.setEnabled(true);
@@ -186,7 +173,10 @@ public class MainActivity extends Activity {
 
             Bitmap bitmap = createBitmapFromAscii(asciiArt.toString(), width, height, paint, charHeight);
 
-            applyColorFromDatFile(bitmap, colorFilePath, width, height);
+            // カラーDATが存在する場合は画像をリサイズし、カラーを適用
+            if (colorFilePath != null) {
+                applyColorFromDatFile(bitmap, colorFilePath, width, height);
+            }
 
             saveBitmapAsPng(bitmap);
 
@@ -197,101 +187,50 @@ public class MainActivity extends Activity {
     }
 
     private void applyColorFromDatFile(Bitmap bitmap, String colorFilePath, int width, int height) {
-    try {
-        BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
-        String line;
+        try {
+            BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
+            String line;
 
-        // カラーDATファイルの行数を数えて元画像の高さを取得
-        int lineCount = 0;
-        while ((line = colorReader.readLine()) != null) {
-            lineCount++;
+            // カラーDATの幅と高さを動的に取得
+            int originalWidth = 0;
+            int originalHeight = 0;
+            while ((line = colorReader.readLine()) != null) {
+                originalHeight++;
+                String[] parts = line.split(":");
+                String[] coords = parts[0].split(",");
+                originalWidth = Math.max(originalWidth, Integer.parseInt(coords[0]) + 1);
+            }
+            colorReader.close();
+
+            // 拡大率を計算
+            float scaleX = (float) width / originalWidth;
+            float scaleY = (float) height / originalHeight;
+
+            // 再度カラーDATを読み込み、カラーを適用
+            colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
+            while ((line = colorReader.readLine()) != null) {
+                String[] parts = line.split(":");
+                String[] coords = parts[0].split(",");
+                int originalX = Integer.parseInt(coords[0]);
+                int originalY = Integer.parseInt(coords[1]);
+                String[] rgb = parts[1].split(",");
+                int red = Integer.parseInt(rgb[0]);
+                int green = Integer.parseInt(rgb[1]);
+                int blue = Integer.parseInt(rgb[2]);
+
+                // 新しい画像サイズに合わせて座標をスケーリング
+                float newX = originalX * scaleX;
+                float newY = originalY * scaleY;
+
+                // カラーを適用
+                int color = Color.rgb(red, green, blue);
+                bitmap.setPixel((int) newX, (int) newY, color);
+            }
+            colorReader.close();
+        } catch (Exception e) {
+            Toast.makeText(this, "カラーDATファイルの処理中にエラーが発生しました", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
         }
-        colorReader.close();
-
-        // 高さと幅を動的に取得
-        int originalHeight = lineCount;
-        int originalWidth = 0;
-
-        // 幅を取得するためにもう一度ファイルを読み込む
-        colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
-        String firstLine = colorReader.readLine();
-        if (firstLine != null) {
-            String[] parts = firstLine.split(":");
-            String[] coords = parts[0].split(",");
-            originalWidth = Integer.parseInt(coords[0]) + 1;  // 1つの座標が0から始まると仮定
-        }
-        colorReader.close();
-
-        // 拡大率を計算
-        float scaleX = (float) width / originalWidth;
-        float scaleY = (float) height / originalHeight;
-
-        // 再度、カラーDATファイルを読み込んでカラーを適用
-        colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
-        while ((line = colorReader.readLine()) != null) {
-            String[] parts = line.split(":");
-            String[] coords = parts[0].split(",");
-            int originalX = Integer.parseInt(coords[0]);
-            int originalY = Integer.parseInt(coords[1]);
-            String[] rgb = parts[1].split(",");
-            int red = Integer.parseInt(rgb[0]);
-            int green = Integer.parseInt(rgb[1]);
-            int blue = Integer.parseInt(rgb[2]);
-
-            // 新しいサイズに座標をスケーリング
-            float newX = originalX * scaleX;
-            float newY = originalY * scaleY;
-
-            // バイリニア補間を行い、ピクセルデータを補完
-            int color = getBilinearInterpolatedColor(bitmap, newX, newY, red, green, blue);
-            bitmap.setPixel((int) newX, (int) newY, color);
-        }
-        colorReader.close();
-    } catch (Exception e) {
-        Toast.makeText(this, "カラーDATファイルの処理中にエラーが発生しました", Toast.LENGTH_SHORT).show();
-        e.printStackTrace();
-    }
-}
-
-
-    private int getBilinearInterpolatedColor(Bitmap bitmap, float x, float y, int red, int green, int blue) {
-        int x1 = (int) x;
-        int y1 = (int) y;
-        int x2 = Math.min(x1 + 1, bitmap.getWidth() - 1);
-        int y2 = Math.min(y1 + 1, bitmap.getHeight() - 1);
-
-        
-        int c11 = bitmap.getPixel(x1, y1);
-        int c12 = bitmap.getPixel(x1, y2);
-        int c21 = bitmap.getPixel(x2, y1);
-        int c22 = bitmap.getPixel(x2, y2);
-
-        
-        int r1 = Color.red(c11);
-        int g1 = Color.green(c11);
-        int b1 = Color.blue(c11);
-
-        int r2 = Color.red(c21);
-        int g2 = Color.green(c21);
-        int b2 = Color.blue(c21);
-
-        int r3 = Color.red(c12);
-        int g3 = Color.green(c12);
-        int b3 = Color.blue(c12);
-
-        int r4 = Color.red(c22);
-        int g4 = Color.green(c22);
-        int b4 = Color.blue(c22);
-
-        
-        float dx = x - x1;
-        float dy = y - y1;
-
-        int r = (int) (r1 * (1 - dx) * (1 - dy) + r2 * dx * (1 - dy) + r3 * (1 - dx) * dy + r4 * dx * dy);
-        int g = (int) (g1 * (1 - dx) * (1 - dy) + g2 * dx * (1 - dy) + g3 * (1 - dx) * dy + g4 * dx * dy);
-        int b = (int) (b1 * (1 - dx) * (1 - dy) + b2 * dx * (1 - dy) + b3 * (1 - dx) * dy + b4 * dx * dy);
-
-        return Color.rgb(r, g, b);
     }
 
     private Bitmap createBitmapFromAscii(String asciiArt, int width, int height, Paint paint, int charHeight) {
