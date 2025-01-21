@@ -197,39 +197,62 @@ public class MainActivity extends Activity {
     }
 
     private void applyColorFromDatFile(Bitmap bitmap, String colorFilePath, int width, int height) {
-        try {
-            BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
-            String line;
+    try {
+        BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
+        String line;
 
-            int originalWidth = 544;  // 元の画像の幅
-            int originalHeight = 544;  // 元の画像の高さ
-
-            while ((line = colorReader.readLine()) != null) {
-                String[] parts = line.split(":");
-                String[] coords = parts[0].split(",");
-                int originalX = Integer.parseInt(coords[0]);
-                int originalY = Integer.parseInt(coords[1]);
-                String[] rgb = parts[1].split(",");
-                int red = Integer.parseInt(rgb[0]);
-                int green = Integer.parseInt(rgb[1]);
-                int blue = Integer.parseInt(rgb[2]);
-
-                // 座標を新しい画像のサイズにスケーリング
-                float scaleX = (float) width / originalWidth;
-                float scaleY = (float) height / originalHeight;
-                float newX = originalX * scaleX;
-                float newY = originalY * scaleY;
-
-                // バイリニア補間を行い、ピクセルデータを補完する
-                int color = getBilinearInterpolatedColor(bitmap, newX, newY, red, green, blue);
-                bitmap.setPixel((int) newX, (int) newY, color);
-            }
-            colorReader.close();
-        } catch (Exception e) {
-            Toast.makeText(this, "カラーDATファイルの処理中にエラーが発生しました", Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+        // カラーDATファイルの行数を数えて元画像の高さを取得
+        int lineCount = 0;
+        while ((line = colorReader.readLine()) != null) {
+            lineCount++;
         }
+        colorReader.close();
+
+        // 高さと幅を動的に取得
+        int originalHeight = lineCount;
+        int originalWidth = 0;
+
+        // 幅を取得するためにもう一度ファイルを読み込む
+        colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
+        String firstLine = colorReader.readLine();
+        if (firstLine != null) {
+            String[] parts = firstLine.split(":");
+            String[] coords = parts[0].split(",");
+            originalWidth = Integer.parseInt(coords[0]) + 1;  // 1つの座標が0から始まると仮定
+        }
+        colorReader.close();
+
+        // 拡大率を計算
+        float scaleX = (float) width / originalWidth;
+        float scaleY = (float) height / originalHeight;
+
+        // 再度、カラーDATファイルを読み込んでカラーを適用
+        colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
+        while ((line = colorReader.readLine()) != null) {
+            String[] parts = line.split(":");
+            String[] coords = parts[0].split(",");
+            int originalX = Integer.parseInt(coords[0]);
+            int originalY = Integer.parseInt(coords[1]);
+            String[] rgb = parts[1].split(",");
+            int red = Integer.parseInt(rgb[0]);
+            int green = Integer.parseInt(rgb[1]);
+            int blue = Integer.parseInt(rgb[2]);
+
+            // 新しいサイズに座標をスケーリング
+            float newX = originalX * scaleX;
+            float newY = originalY * scaleY;
+
+            // バイリニア補間を行い、ピクセルデータを補完
+            int color = getBilinearInterpolatedColor(bitmap, newX, newY, red, green, blue);
+            bitmap.setPixel((int) newX, (int) newY, color);
+        }
+        colorReader.close();
+    } catch (Exception e) {
+        Toast.makeText(this, "カラーDATファイルの処理中にエラーが発生しました", Toast.LENGTH_SHORT).show();
+        e.printStackTrace();
     }
+}
+
 
     private int getBilinearInterpolatedColor(Bitmap bitmap, float x, float y, int red, int green, int blue) {
         int x1 = (int) x;
