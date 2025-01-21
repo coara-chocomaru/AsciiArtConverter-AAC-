@@ -243,19 +243,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    private static class ColorCoordinate {
-        int x, y;
-        int red, green, blue;
-
-        public ColorCoordinate(int x, int y, int red, int green, int blue) {
-            this.x = x;
-            this.y = y;
-            this.red = red;
-            this.green = green;
-            this.blue = blue;
-        }
-    }
-
     private Bitmap createBitmapFromAscii(String asciiArt, int width, int height, Paint paint, int charHeight) {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
@@ -301,5 +288,18 @@ public class MainActivity extends Activity {
             }
         }
         return fileName.substring(0, fileName.lastIndexOf('.'));
+    }
+
+    // カラー座標のデータクラス
+    private static class ColorCoordinate {
+        int x, y, red, green, blue;
+
+        ColorCoordinate(int x, int y, int red, int green, int blue) {
+            this.x = x;
+            this.y = y;
+            this.red = red;
+            this.green = green;
+            this.blue = blue;
+        }
     }
 }
