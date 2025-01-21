@@ -23,7 +23,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends Activity {
 
@@ -162,6 +164,7 @@ public class MainActivity extends Activity {
 
     private void convertAsciiToImageWithColor(String txtFilePath, String colorFilePath) {
         try {
+            // TXTファイルの読み込み
             Uri txtUri = Uri.parse(txtFilePath);
             BufferedReader txtReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(txtUri)));
             StringBuilder asciiArt = new StringBuilder();
@@ -180,31 +183,26 @@ public class MainActivity extends Activity {
             }
             txtReader.close();
 
+            // TXT画像の解像度（高さ・幅）
             int charHeight = (int) (paint.getTextSize() + 10);
             int width = maxWidth + 20;
             int height = lineCount * charHeight + 20;
 
+            // TXT画像を生成
             Bitmap bitmap = createBitmapFromAscii(asciiArt.toString(), width, height, paint, charHeight);
 
-            applyColorFromDatFile(bitmap, colorFilePath, width, height);
-
-            saveBitmapAsPng(bitmap);
-
-            Toast.makeText(this, "カラー変換と保存が完了しました", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "変換中にエラーが発生しました", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void applyColorFromDatFile(Bitmap bitmap, String colorFilePath, int width, int height) {
-        try {
+            // カラーDATファイルの処理
             BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
-            String line;
-            int originalWidth = width;  // ASCII art width
-            int originalHeight = height; // ASCII art height
+            String colorLine;
+            int originalWidth = 0;
+            int originalHeight = 0;
 
-            while ((line = colorReader.readLine()) != null) {
-                String[] parts = line.split(":");
+            // カラーDATファイルの座標を保存するリスト
+            List<ColorCoordinate> colorCoordinates = new ArrayList<>();
+
+            // カラーDATファイルのサイズを動的に取得
+            while ((colorLine = colorReader.readLine()) != null) {
+                String[] parts = colorLine.split(":");
                 String[] coords = parts[0].split(",");
                 int originalX = Integer.parseInt(coords[0]);
                 int originalY = Integer.parseInt(coords[1]);
@@ -213,18 +211,48 @@ public class MainActivity extends Activity {
                 int green = Integer.parseInt(rgb[1]);
                 int blue = Integer.parseInt(rgb[2]);
 
-                // リサイズしてカラーを適用
-                int newX = (int) (originalX * (float) width / originalWidth);
-                int newY = (int) (originalY * (float) height / originalHeight);
+                colorCoordinates.add(new ColorCoordinate(originalX, originalY, red, green, blue));
 
-                if (newX < bitmap.getWidth() && newY < bitmap.getHeight()) {
-                    bitmap.setPixel(newX, newY, Color.rgb(red, green, blue));
-                }
+                // 座標の最大値を取得
+                originalWidth = Math.max(originalWidth, originalX);
+                originalHeight = Math.max(originalHeight, originalY);
             }
             colorReader.close();
+
+            // TXT画像の解像度に合わせてカラーDAT座標を拡大
+            float scaleX = (float) width / (originalWidth + 1);
+            float scaleY = (float) height / (originalHeight + 1);
+
+            // カラーDATを拡大してカラー化
+            for (ColorCoordinate coord : colorCoordinates) {
+                int newX = (int) (coord.x * scaleX);
+                int newY = (int) (coord.y * scaleY);
+
+                // 範囲内に収まる座標にカラーを適用
+                if (newX < bitmap.getWidth() && newY < bitmap.getHeight() && newX >= 0 && newY >= 0) {
+                    bitmap.setPixel(newX, newY, Color.rgb(coord.red, coord.green, coord.blue));
+                }
+            }
+
+            // 画像を保存
+            saveBitmapAsPng(bitmap);
+
+            Toast.makeText(this, "カラー変換と保存が完了しました", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            Toast.makeText(this, "カラーDATファイルの処理中にエラーが発生しました", Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+            Toast.makeText(this, "変換中にエラーが発生しました", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private static class ColorCoordinate {
+        int x, y;
+        int red, green, blue;
+
+        public ColorCoordinate(int x, int y, int red, int green, int blue) {
+            this.x = x;
+            this.y = y;
+            this.red = red;
+            this.green = green;
+            this.blue = blue;
         }
     }
 
