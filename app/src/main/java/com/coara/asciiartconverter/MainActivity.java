@@ -77,7 +77,7 @@ public class MainActivity extends Activity {
             if (uri != null) {
                 selectedFilePath = uri.toString();
                 filePathView.setText(selectedFilePath);
-                // ファイルタイプに基づいて適切なボタンを有効化
+                
                 if (selectedFilePath.endsWith(".txt")) {
                     convertButton.setEnabled(true);
                     revertButton.setEnabled(false);
@@ -101,7 +101,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    // txtファイルを画像に変換するメソッド
+
     private void convertAsciiToImage(String filePath) {
         try {
             Uri uri = Uri.parse(filePath);
@@ -136,7 +136,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    // datファイルを画像に変換するメソッド
+    
     private void convertDatToImage(String filePath) {
         try {
             Uri uri = Uri.parse(filePath);
@@ -174,7 +174,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    // txtファイルから生成したビットマップを描画
+    
     private Bitmap createBitmapFromAscii(String asciiArt, int width, int height, Paint paint, int charHeight) {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
@@ -190,7 +190,7 @@ public class MainActivity extends Activity {
         return bitmap;
     }
 
-    // datファイルのピクセルデータからビットマップを生成
+    /
     private Bitmap createBitmapFromDat(List<int[]> pixelData, int width, int height) {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
@@ -208,7 +208,7 @@ public class MainActivity extends Activity {
         return bitmap;
     }
 
-    // 画像をPNGとして保存
+    
     private void saveBitmapAsPng(Bitmap bitmap, Uri uri) {
         try {
             String fileName = generateFileName();
@@ -227,7 +227,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    // 動的にファイル名を生成
+
     private String generateFileName() {
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMdd_HHmmss");
         java.util.Date now = new java.util.Date();
