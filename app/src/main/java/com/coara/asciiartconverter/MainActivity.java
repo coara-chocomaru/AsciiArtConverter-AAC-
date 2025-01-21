@@ -22,18 +22,16 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Calendar;
 
 public class MainActivity extends Activity {
 
     private static final int REQUEST_CODE_SELECT_FILE = 1;
-    private static final int REQUEST_CODE_SELECT_COLOR_FILE = 2;
-    private static final int REQUEST_CODE_PERMISSION = 3;
+    private static final int REQUEST_CODE_PERMISSION = 2;
+    private static final String TAG = "ASCIIArtConverter";
 
     private TextView filePathView;
-    private String selectedTxtFilePath;
-    private String selectedColorFilePath;
+    private String selectedFilePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,14 +40,16 @@ public class MainActivity extends Activity {
 
         Button selectTxtFileButton = findViewById(R.id.selectTxtFileButton);
         Button selectColorFileButton = findViewById(R.id.selectColorFileButton);
-        Button convertButton = findViewById(R.id.convertButton);
-        Button convertWithColorButton = findViewById(R.id.convertWithColorButton);
+        Button convertTxtButton = findViewById(R.id.convertTxtButton);
+        Button convertRgbButton = findViewById(R.id.convertRgbButton);
         filePathView = findViewById(R.id.filePathView);
 
+        // パーミッション確認
         if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_PERMISSION);
         }
 
+        // TXTファイル選択
         selectTxtFileButton.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.setType("text/plain");
@@ -57,26 +57,29 @@ public class MainActivity extends Activity {
             startActivityForResult(intent, REQUEST_CODE_SELECT_FILE);
         });
 
+        // RGBカラーDATファイル選択
         selectColorFileButton.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            intent.setType("application/octet-stream");
+            intent.setType("application/octet-stream"); // .datファイルを選択する
             intent.addCategory(Intent.CATEGORY_OPENABLE);
-            startActivityForResult(intent, REQUEST_CODE_SELECT_COLOR_FILE);
+            startActivityForResult(intent, REQUEST_CODE_SELECT_FILE);
         });
 
-        convertButton.setOnClickListener(v -> {
-            if (selectedTxtFilePath != null) {
-                convertAsciiToImage(selectedTxtFilePath);
+        // TXTから画像変換
+        convertTxtButton.setOnClickListener(v -> {
+            if (selectedFilePath != null) {
+                convertAsciiToImage(selectedFilePath);
             } else {
                 Toast.makeText(this, "テキストファイルを選択してください", Toast.LENGTH_SHORT).show();
             }
         });
 
-        convertWithColorButton.setOnClickListener(v -> {
-            if (selectedTxtFilePath != null && selectedColorFilePath != null) {
-                convertAsciiToImageWithColor(selectedTxtFilePath, selectedColorFilePath);
+        // RGBカラーDATから画像復元
+        convertRgbButton.setOnClickListener(v -> {
+            if (selectedFilePath != null) {
+                convertRgbToImage(selectedFilePath);
             } else {
-                Toast.makeText(this, "テキストファイルとカラーDATファイルを選択してください", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "RGBカラーDATファイルを選択してください", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -87,14 +90,8 @@ public class MainActivity extends Activity {
         if (requestCode == REQUEST_CODE_SELECT_FILE && resultCode == RESULT_OK) {
             Uri uri = data.getData();
             if (uri != null) {
-                selectedTxtFilePath = uri.toString();
-                filePathView.setText("選択されたテキストファイル: " + selectedTxtFilePath);
-            }
-        } else if (requestCode == REQUEST_CODE_SELECT_COLOR_FILE && resultCode == RESULT_OK) {
-            Uri uri = data.getData();
-            if (uri != null) {
-                selectedColorFilePath = uri.toString();
-                filePathView.setText("選択されたカラーDATファイル: " + selectedColorFilePath);
+                selectedFilePath = uri.toString();
+                filePathView.setText(selectedFilePath);
             }
         }
     }
@@ -111,6 +108,7 @@ public class MainActivity extends Activity {
         }
     }
 
+    // TXTから画像に変換する処理
     private void convertAsciiToImage(String filePath) {
         try {
             Uri uri = Uri.parse(filePath);
@@ -136,76 +134,14 @@ public class MainActivity extends Activity {
             int width = maxWidth + 20; // 左右の余白を追加
             int height = lineCount * charHeight + 20; // 上下の余白を追加
 
+            // 画像生成
             Bitmap bitmap = createBitmapFromAscii(asciiArt.toString(), width, height, paint, charHeight);
-
-            saveBitmapAsPng(bitmap);
+            saveBitmapAsPng(bitmap, uri);
 
             Toast.makeText(this, "変換と保存が完了しました", Toast.LENGTH_SHORT).show();
 
         } catch (Exception e) {
             Toast.makeText(this, "変換中にエラーが発生しました", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void convertAsciiToImageWithColor(String txtFilePath, String colorFilePath) {
-        try {
-            Uri txtUri = Uri.parse(txtFilePath);
-            BufferedReader txtReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(txtUri)));
-            StringBuilder asciiArt = new StringBuilder();
-            String line;
-            int maxWidth = 0;
-            int lineCount = 0;
-
-            Paint paint = new Paint();
-            paint.setTextSize(40);
-            paint.setTypeface(Typeface.MONOSPACE);
-
-            while ((line = txtReader.readLine()) != null) {
-                asciiArt.append(line).append("\n");
-                maxWidth = Math.max(maxWidth, (int) paint.measureText(line));
-                lineCount++;
-            }
-            txtReader.close();
-
-            int charHeight = (int) (paint.getTextSize() + 10);
-            int width = maxWidth + 20;
-            int height = lineCount * charHeight + 20;
-
-            Bitmap bitmap = createBitmapFromAscii(asciiArt.toString(), width, height, paint, charHeight);
-
-            
-            applyColorFromDatFile(bitmap, colorFilePath, width, height);
-
-            saveBitmapAsPng(bitmap);
-
-            Toast.makeText(this, "カラー変換と保存が完了しました", Toast.LENGTH_SHORT).show();
-
-        } catch (Exception e) {
-            Toast.makeText(this, "変換中にエラーが発生しました", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void applyColorFromDatFile(Bitmap bitmap, String colorFilePath, int width, int height) {
-        try {
-            BufferedReader colorReader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(Uri.parse(colorFilePath))));
-            String line;
-
-            while ((line = colorReader.readLine()) != null) {
-                String[] parts = line.split(":");
-                String[] coords = parts[0].split(",");
-                int x = Integer.parseInt(coords[0]);
-                int y = Integer.parseInt(coords[1]);
-                String[] rgb = parts[1].split(",");
-                int r = Integer.parseInt(rgb[0]);
-                int g = Integer.parseInt(rgb[1]);
-                int b = Integer.parseInt(rgb[2]);
-
-                int color = Color.rgb(r, g, b);
-                bitmap.setPixel(x, y, color);
-            }
-            colorReader.close();
-        } catch (Exception e) {
-            Toast.makeText(this, "カラーDATファイルの処理中にエラーが発生しました", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -224,14 +160,12 @@ public class MainActivity extends Activity {
         return bitmap;
     }
 
-    private void saveBitmapAsPng(Bitmap bitmap) {
+    private void saveBitmapAsPng(Bitmap bitmap, Uri uri) {
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("MMdd_HHmmss");
-            String timestamp = sdf.format(new Date());
-
+            String fileName = getFileNameFromUri(uri);
             File outputDir = getExternalFilesDir(null);
             if (outputDir != null) {
-                File outputFile = new File(outputDir, timestamp + ".png");
+                File outputFile = new File(outputDir, fileName + ".png");
                 FileOutputStream out = new FileOutputStream(outputFile);
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
                 out.close();
@@ -241,5 +175,65 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             Toast.makeText(this, "画像の保存中にエラーが発生しました", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    
+    private void convertRgbToImage(String filePath) {
+        try {
+            Uri uri = Uri.parse(filePath);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(uri)));
+            StringBuilder colorData = new StringBuilder();
+            String line;
+            int width = 0;
+            int height = 0;
+            while ((line = reader.readLine()) != null) {
+                colorData.append(line).append("\n");
+                width = line.length(); // 仮で1行の幅を画像の幅に設定
+                height++;
+            }
+            reader.close();
+
+            // 画像作成
+            Bitmap bitmap = createBitmapFromRgb(colorData.toString(), width, height);
+            saveBitmapAsPng(bitmap, uri);
+
+            Toast.makeText(this, "RGBカラーDATから画像に復元しました", Toast.LENGTH_SHORT).show();
+
+        } catch (Exception e) {
+            Toast.makeText(this, "RGBカラーDATから画像変換中にエラーが発生しました", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private Bitmap createBitmapFromRgb(String colorData, int width, int height) {
+        String[] lines = colorData.split("\n");
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+        for (int y = 0; y < lines.length; y++) {
+            String line = lines[y];
+            for (int x = 0; x < line.length(); x++) {
+                char ch = line.charAt(x);
+                int color = getColorFromChar(ch);
+                bitmap.setPixel(x, y, color);
+            }
+        }
+        return bitmap;
+    }
+
+    private int getColorFromChar(char ch) {
+        // 色の設定：ここでは簡単な例として、ASCIIコードを色に変換
+        int colorValue = (ch * 1000) % 0xFFFFFF; // 適当なカラーコードに変換
+        return colorValue | 0xFF000000; // アルファ値を255に設定
+    }
+
+    private String getFileNameFromUri(Uri uri) {
+        String fileName = "";
+        ContentResolver contentResolver = getContentResolver();
+        try (Cursor cursor = contentResolver.query(uri, null, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                fileName = cursor.getString(nameIndex);
+            }
+        }
+        return fileName.substring(0, fileName.lastIndexOf('.'));
     }
 }
