@@ -6,7 +6,7 @@
 
     <!-- TXTファイル選択ボタン -->
     <Button
-        android:id="@+id/selectTxtFileButton"
+        android:id="@+id/selectFileButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="TXTファイルを選択"
@@ -19,7 +19,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="DATファイルを選択"
-        android:layout_below="@id/selectTxtFileButton"
+        android:layout_below="@id/selectFileButton"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"/>
 
