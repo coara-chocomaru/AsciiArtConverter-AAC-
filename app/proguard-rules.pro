@@ -22,7 +22,7 @@
 -classobfuscationdictionary obfuscation-dictionary.txt
 -renamesourcefileattribute SourceFile
 -keepattributes Exceptions, InnerClasses, Signature, Deprecated, EnclosingMethod
--optimizationpasses 3
+-optimizationpasses 6
 -mergeinterfacesaggressively
 
 -adaptclassstrings
